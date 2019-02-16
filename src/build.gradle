@@ -1,0 +1,77 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+}
+
+allprojects {
+    apply plugin: "idea"
+    apply plugin: "eclipse"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+    mavenCentral()
+    maven {
+        url "https://repository.apache.org/snapshots"
+    }
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+    maven {
+        url "https://oss.jfrog.org/jfrog-dependencies"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "application"
+
+group 'io.pravega.benchmark'
+version loadtestVersion
+
+sourceCompatibility = javaVersion
+archivesBaseName = 'pravega-benchmark'
+applicationDefaultJvmArgs = ["-Dlogback.configurationFile=file:conf/logback.xml"]
+mainClassName = 'io.pravega.benchmark.loadtest.AppMain'
+
+dependencies {
+
+    compile group: 'io.pravega', name: 'pravega-client', version: pravegaVersion
+    compile group: 'io.pravega', name: 'pravega-common', version: pravegaVersion
+    
+    compile group: 'com.google.guava', name: 'guava', version: guavaVersion
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jApiVersion
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: slf4jApiVersion
+
+    compileOnly group: 'org.projectlombok', name:'lombok', version: lombokVersion
+    annotationProcessor group: 'org.projectlombok', name:'lombok', version: lombokVersion
+
+
+    compile group: 'commons-cli', name: 'commons-cli', version: apacheCommonsCliVersion
+    compile group: 'org.apache.commons', name: 'commons-csv', version: apacheCommonsCsvVersion
+
+    compile group: 'com.google.code.gson', name: 'gson', version: gsonVersion
+
+}
+
+distributions {
+    main {
+        baseName = archivesBaseName
+        contents {
+            into('lib') {
+                from(project.configurations.runtime)
+                from(jar)
+            }
+            into('conf') {
+                from(project.file('src/main/resources/logback.xml'))
+                from(project.file('src/main/dist/conf/app.json'))
+                from(project.file('src/main/dist/conf/app-template.json'))
+            }
+        }
+    }
+}

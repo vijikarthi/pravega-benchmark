@@ -1,0 +1,52 @@
+{
+  "connection": {
+    "controller": "tcp://localhost:9090",
+    "defaultScope": ""
+  },
+  "create": {
+    "streams": [
+      {
+        "scope":  "",
+        "stream":  "",
+        "policy":  {
+          "fixed": {
+            "noOfSegments": 0
+          },
+          "dynamic": {
+            "targetKBps": 0,
+            "targetRate": 0,
+            "scaleFactor": 0,
+            "minNumSegments": 0
+          }
+        }
+      }
+    ]
+  },
+  "write": {
+    "scope": "",
+    "stream": "",
+    "noOfWriters": 0,
+    "eventSize": 0,
+    "noOfEvents": 0,
+    "useRandomKey": true,
+    "useStaticData": true,
+    "requestRatePerSec": 0,
+    "txnWrites": false
+  },
+  "read": {
+    "noOfReaders": 0,
+    "eventSize": 0,
+    "noOfEvents": 0,
+    "streams": [
+      { "scope":  "", "stream":  "", "startStreamCut": "", "endStreamCut": "" },
+      { "scope":  "", "stream":  "", "startStreamCut": "", "endStreamCut": "" }
+    ],
+    "readerGroup": {
+      "name": "",
+      "scope": ""
+    }
+  },
+  "report": {
+    "type": "csv"
+  }
+}

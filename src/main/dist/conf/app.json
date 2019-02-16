@@ -1,0 +1,39 @@
+{
+  "connection": {
+    "controller": "tcp://localhost:9090",
+    "defaultScope": "foo"
+  },
+  "create": {
+    "streams": [
+      {
+        "stream":  "bar",
+        "policy":  {
+          "fixed": {
+            "noOfSegments": 3
+          }
+        }
+      }
+    ]
+  },
+  "write": {
+    "stream": "bar",
+    "noOfWriters": 10,
+    "eventSize": 1000,
+    "noOfEvents": 1000000,
+    "useRandomKey": false,
+    "useStaticData": true,
+    "requestRatePerSec": 0,
+    "txnWrites": false
+  },
+  "read": {
+    "noOfReaders": 10,
+    "eventSize": 1000,
+    "noOfEvents": 1000000,
+    "streams": [
+      { "scope":  "foo", "stream":  "bar", "startStreamCut": "", "endStreamCut": "" }
+    ]
+  },
+  "report": {
+    "type": "csv"
+  }
+}
