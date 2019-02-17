@@ -34,9 +34,19 @@ public class WriteWorkerHandler extends AbstractHandler {
         if (appConfig.getWrite().getRequestRatePerSec() > 0) {
             rateLimiter = RateLimiter.create(appConfig.getWrite().getRequestRatePerSec(), 2000, TimeUnit.MILLISECONDS);
         }
+
+        int totalEvents = appConfig.getWrite().getNoOfEvents();
+        int totalEventsToGenerate = totalEvents / parallelism;
+        int remaining = totalEvents - (totalEventsToGenerate * parallelism);
+
         for (int i=1; i <= parallelism; i++) {
-            WriteWorker writeWorker = new WriteWorker(i, rateLimiter, appConfig, queue, taskManagerLatch);
-            runnablesToManage.add(writeWorker);
+            if (i == 1) {
+                WriteWorker writeWorker = new WriteWorker(i, rateLimiter, appConfig, queue, taskManagerLatch, totalEventsToGenerate + remaining);
+                runnablesToManage.add(writeWorker);
+            } else {
+                WriteWorker writeWorker = new WriteWorker(i, rateLimiter, appConfig, queue, taskManagerLatch, totalEventsToGenerate);
+                runnablesToManage.add(writeWorker);
+            }
         }
 
         try {

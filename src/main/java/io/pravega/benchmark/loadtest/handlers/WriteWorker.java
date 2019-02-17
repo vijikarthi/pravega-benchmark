@@ -45,11 +45,12 @@ public class WriteWorker extends AbstractWorker {
 
 
     public WriteWorker(final int workerId, final RateLimiter rateLimiter, final AppConfig appConfig,
-                       final BlockingQueue<Stats> queue, final CountDownLatch latch) throws Exception {
+                       final BlockingQueue<Stats> queue, final CountDownLatch latch, final int totalEventsToGenerate) throws Exception {
         super(appConfig, queue, latch);
         this.workerId = workerId;
         this.routingKey = String.valueOf(workerId);
         this.rateLimiter = rateLimiter;
+        this.totalEventsToGenerate = totalEventsToGenerate;
         initialize();
     }
 
@@ -70,7 +71,6 @@ public class WriteWorker extends AbstractWorker {
         useRandomKey = appConfig.getWrite().isUseRandomKey();
         useStaticData = appConfig.getWrite().isUseStaticData();
         parallelism = appConfig.getWrite().getNoOfWriters();
-        totalEventsToGenerate = totalEvents / parallelism;
 
         clientFactory = ClientFactory.withScope(scope,controller);
         writer = clientFactory.createEventWriter(stream, new JavaSerializer<>(), EventWriterConfig.builder().build());
@@ -82,7 +82,7 @@ public class WriteWorker extends AbstractWorker {
 
     @Override
     public void run() {
-        log.info("writer thread {} is running now", Thread.currentThread().getName());
+        log.info("writer thread {} is running now to generate {} records", Thread.currentThread().getName(), totalEventsToGenerate);
         int currentOffset = 1;
         try {
             while (currentOffset <= totalEventsToGenerate) {
@@ -126,7 +126,7 @@ public class WriteWorker extends AbstractWorker {
         } finally {
             latch.countDown();
             close();
-            log.info("writer thread {} is exiting now. Wrote [{}] records", Thread.currentThread().getName(), currentOffset);
+            log.info("writer thread {} is exiting now. Wrote [{}] records", Thread.currentThread().getName(), --currentOffset);
         }
     }
 
