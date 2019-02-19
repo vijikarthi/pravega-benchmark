@@ -125,9 +125,9 @@ public class ReadWorker extends AbstractWorker {
                 }
             }
         } finally {
-            latch.countDown();
             close();
             log.info("reader thread {} is exiting now. Total events read [{}]", Thread.currentThread().getName(), readResponse.get());
+            latch.countDown();
         }
     }
 

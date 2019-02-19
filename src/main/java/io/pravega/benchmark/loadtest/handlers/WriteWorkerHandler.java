@@ -58,15 +58,12 @@ public class WriteWorkerHandler extends AbstractHandler {
             CompletableFuture.allOf(futures).join();
 
             taskManagerLatch.await();
-
-            taskManagerExecutorService.shutdown();
-            taskManagerExecutorService.awaitTermination(5, TimeUnit.SECONDS);
-
         } finally {
-            log.info("exiting write worker handler");
-            latch.countDown();
+            taskManagerExecutorService.shutdown();
+            taskManagerExecutorService.awaitTermination(20, TimeUnit.SECONDS);
             stop();
-
+            latch.countDown();
+            log.info("exiting write worker handler");
         }
     }
 
