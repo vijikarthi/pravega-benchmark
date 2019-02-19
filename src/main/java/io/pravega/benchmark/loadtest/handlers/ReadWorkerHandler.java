@@ -46,6 +46,7 @@ public class ReadWorkerHandler extends AbstractHandler {
             CompletableFuture.allOf(futures).join();
             taskManagerLatch.await();
         } finally {
+            log.info("read worker handler received notification from all readers indicating they are done");
             taskManagerExecutorService.shutdown();
             taskManagerExecutorService.awaitTermination(20, TimeUnit.SECONDS);
             stop();

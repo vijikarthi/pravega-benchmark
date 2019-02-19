@@ -132,6 +132,7 @@ public class ReadWorker extends AbstractWorker {
     }
 
     private void close() {
+        log.info("reader thread {} is closing Pravega client connection", Thread.currentThread().getName());
         try {
             if (reader != null) {
                 reader.close();
@@ -139,6 +140,8 @@ public class ReadWorker extends AbstractWorker {
             if (clientFactory != null) {
                 clientFactory.close();
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            log.error("reader thread {} failed to close Pravega client connection.", Thread.currentThread().getName());
+        }
     }
 }
