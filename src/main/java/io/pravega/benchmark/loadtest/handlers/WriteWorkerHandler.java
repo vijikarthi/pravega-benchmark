@@ -28,7 +28,8 @@ public class WriteWorkerHandler extends AbstractHandler {
         log.info("initializing write worker handler");
         int parallelism = appConfig.getWrite().getNoOfWriters();
         CountDownLatch taskManagerLatch= new CountDownLatch(parallelism);
-        ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(parallelism);
+        int threadPool = appConfig.getThreadPool() <= 0 ? parallelism : appConfig.getThreadPool();
+        ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(threadPool);
         List<Runnable> runnablesToManage = new ArrayList<>();
         RateLimiter rateLimiter = null;
         if (appConfig.getWrite().getRequestRatePerSec() > 0) {

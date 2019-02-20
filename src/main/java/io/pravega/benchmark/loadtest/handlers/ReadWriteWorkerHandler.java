@@ -30,9 +30,10 @@ public class ReadWriteWorkerHandler extends AbstractHandler {
 
         int writeParallelism = appConfig.getWrite().getNoOfWriters();
         int readParallelism = appConfig.getRead().getNoOfReaders();
+        int threadPool = appConfig.getThreadPool() <= 0 ? writeParallelism + readParallelism : appConfig.getThreadPool();
 
         CountDownLatch taskManagerLatch= new CountDownLatch(writeParallelism + readParallelism);
-        ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(writeParallelism + readParallelism);
+        ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(threadPool);
 
         List<Runnable> runnablesToManage = new ArrayList<>();
 

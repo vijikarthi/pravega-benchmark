@@ -17,6 +17,7 @@ import static io.pravega.benchmark.loadtest.utils.ArgumentsParser.RunMode;
 public final class AppConfig {
 
     private String appName;
+    private int threadPool;
     private ConnectionConfig connection;
     private CreateConfig create;
     private WriteConfig write;
@@ -25,6 +26,8 @@ public final class AppConfig {
     private RunMode runMode;
 
     void validate() {
+        Preconditions.checkNotNull(appName, "appName cannot be empty");
+
         Preconditions.checkNotNull(connection, "connection cannot be null");
         connection.validate();
 

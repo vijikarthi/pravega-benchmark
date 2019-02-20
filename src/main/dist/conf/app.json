@@ -1,5 +1,6 @@
 {
   "appName": "perfTest",
+  "threadPool": 80,
   "connection": {
     "controller": "tcp://localhost:9090",
     "defaultScope": "foo"

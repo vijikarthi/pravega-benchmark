@@ -30,7 +30,8 @@ public class ReadWorkerHandler extends AbstractHandler {
         log.info("initializing read worker handler");
         int parallelism = appConfig.getRead().getNoOfReaders();
         CountDownLatch taskManagerLatch= new CountDownLatch(parallelism);
-        ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(parallelism);
+        int threadPool = appConfig.getThreadPool() <= 0 ? parallelism : appConfig.getThreadPool();
+        ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(threadPool);
         List<Runnable> runnablesToManage = new ArrayList<>();
         AtomicInteger readerProgress = new AtomicInteger();
 

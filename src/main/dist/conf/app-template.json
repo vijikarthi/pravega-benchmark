@@ -1,4 +1,6 @@
 {
+  "appName": "perfTest",
+  "threadPool": 80,
   "connection": {
     "controller": "tcp://localhost:9090",
     "defaultScope": ""
@@ -47,7 +49,7 @@
   },
   "report": {
     "type": "csv | pravega",
-    "comment": "if pravega is chosen, the provide the connection and stream information using params structure",
+    "comment": "if pravega is chosen, then provide the connection and stream information using params structure",
     "params": [
       {"key":  "controller", "value":  "tcp://localhost:9090"},
       {"key":  "scope", "value":  ""},
