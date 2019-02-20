@@ -1,4 +1,5 @@
 {
+  "appName": "perfTest",
   "connection": {
     "controller": "tcp://localhost:9090",
     "defaultScope": "foo"
@@ -6,7 +7,17 @@
   "create": {
     "streams": [
       {
+        "scope":  "foo",
         "stream":  "bar",
+        "policy":  {
+          "fixed": {
+            "noOfSegments": 3
+          }
+        }
+      },
+      {
+        "scope":  "report",
+        "stream":  "test1",
         "policy":  {
           "fixed": {
             "noOfSegments": 3
@@ -19,21 +30,25 @@
     "stream": "bar",
     "noOfWriters": 10,
     "eventSize": 1000,
-    "noOfEvents": 1000000,
+    "noOfEvents": 1000,
     "useRandomKey": false,
-    "useStaticData": true,
     "requestRatePerSec": 0,
     "txnWrites": false
   },
   "read": {
-    "noOfReaders": 10,
+    "noOfReaders": 5,
     "eventSize": 1000,
-    "noOfEvents": 1000000,
+    "noOfEvents": 1000,
     "streams": [
       { "scope":  "foo", "stream":  "bar", "startStreamCut": "", "endStreamCut": "" }
     ]
   },
   "report": {
-    "type": "csv"
+    "type": "csv",
+    "params": [
+      {"key":  "controller", "value":  "tcp://localhost:9090"},
+      {"key":  "scope", "value":  "report"},
+      {"key":  "stream", "value":  "test1"}
+    ]
   }
 }

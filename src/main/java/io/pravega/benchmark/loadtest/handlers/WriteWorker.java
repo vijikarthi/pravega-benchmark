@@ -4,14 +4,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
 import io.pravega.benchmark.loadtest.reports.Stats;
 import io.pravega.benchmark.loadtest.utils.AppConfig;
+import io.pravega.benchmark.loadtest.utils.ArgumentsParser;
 import io.pravega.client.ClientFactory;
 import io.pravega.client.stream.EventStreamWriter;
 import io.pravega.client.stream.EventWriterConfig;
 import io.pravega.client.stream.impl.JavaSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+
 import java.net.URI;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -22,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class WriteWorker extends AbstractWorker {
 
-    private int workerId;
     private ExecutorService executorService = Executors.newFixedThreadPool(1);
     private AtomicInteger ongoingRequest = new AtomicInteger();
 
@@ -34,20 +36,16 @@ public class WriteWorker extends AbstractWorker {
     private String scope;
     private String stream;
     private int eventSize;
-    private int totalEvents;
-    private int parallelism;
-    private boolean useStaticData;
     private boolean useRandomKey;
     private int totalEventsToGenerate;
     private URI controller;
-    private String data;
     private String routingKey;
 
+    public static int MAX_PAD_LENGTH = 36;
 
     public WriteWorker(final int workerId, final RateLimiter rateLimiter, final AppConfig appConfig,
                        final BlockingQueue<Stats> queue, final CountDownLatch latch, final int totalEventsToGenerate) throws Exception {
-        super(appConfig, queue, latch);
-        this.workerId = workerId;
+        super(workerId, appConfig, queue, latch);
         this.routingKey = String.valueOf(workerId);
         this.rateLimiter = rateLimiter;
         this.totalEventsToGenerate = totalEventsToGenerate;
@@ -67,17 +65,10 @@ public class WriteWorker extends AbstractWorker {
         controller = URI.create(appConfig.getConnection().getController());
 
         eventSize = appConfig.getWrite().getEventSize();
-        totalEvents = appConfig.getWrite().getNoOfEvents();
         useRandomKey = appConfig.getWrite().isUseRandomKey();
-        useStaticData = appConfig.getWrite().isUseStaticData();
-        parallelism = appConfig.getWrite().getNoOfWriters();
 
         clientFactory = ClientFactory.withScope(scope,controller);
         writer = clientFactory.createEventWriter(stream, new JavaSerializer<>(), EventWriterConfig.builder().build());
-
-        if (useStaticData) {
-            data = RandomStringUtils.randomAlphabetic(eventSize);
-        }
     }
 
     @Override
@@ -93,15 +84,16 @@ public class WriteWorker extends AbstractWorker {
 
                 CompletableFuture<Void> future;
 
-                Stats stats = new Stats();
-                stats.setStartTime(Instant.now());
-                stats.setEventSize(eventSize);
-                stats.setRunMode(appConfig.getRunMode());
+                String eventKey = UUID.randomUUID().toString();
+                Stats stats = getStatsInfo(eventSize, ArgumentsParser.RunMode.write, Thread.currentThread().getName());
+                stats.setEventKey(eventKey);
+                String data = getData(eventKey);
+                //log.info("writing: {}, {}", currentOffset, data);
 
                 if (useRandomKey) {
-                    future = writer.writeEvent(getData());
+                    future = writer.writeEvent(data);
                 } else {
-                    future = writer.writeEvent(routingKey, getData());
+                    future = writer.writeEvent(routingKey, data);
                 }
 
                 ongoingRequest.incrementAndGet();
@@ -145,10 +137,9 @@ public class WriteWorker extends AbstractWorker {
         } catch (Exception e) {}
     }
 
-    private String getData() {
-        if (!useStaticData) {
-            return RandomStringUtils.randomAlphabetic(eventSize);
-        }
-        return data;
+    private String getData(String key) {
+        String randomVal = RandomStringUtils.randomAlphabetic(eventSize - MAX_PAD_LENGTH);
+        return String.join("", new String[]{key, randomVal});
+
     }
 }

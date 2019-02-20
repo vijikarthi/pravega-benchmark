@@ -22,4 +22,9 @@
         <appender-ref ref="FILE" />
     </root>
 
+    <logger name="io.pravega" level="ERROR"/>
+    <logger name="io.netty" level="ERROR"/>
+    <logger name="io.grpc" level="ERROR"/>
+
+
 </configuration>

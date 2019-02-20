@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -32,8 +33,17 @@ public class ReadWorkerHandler extends AbstractHandler {
         ExecutorService taskManagerExecutorService = Executors.newFixedThreadPool(parallelism);
         List<Runnable> runnablesToManage = new ArrayList<>();
         AtomicInteger readerProgress = new AtomicInteger();
+
+        String rgName = null;
+        if (appConfig.getRead().getReaderGroup() != null) {
+            rgName = appConfig.getRead().getReaderGroup().getName();
+        }
+        if (rgName == null || rgName.length() == 0) {
+            rgName = UUID.randomUUID().toString().replace("-", "");
+        }
+
         for (int i=1; i <= parallelism; i++) {
-            ReadWorker readWorker = new ReadWorker(i, readerProgress, appConfig, queue, taskManagerLatch);
+            ReadWorker readWorker = new ReadWorker(i, readerProgress, appConfig, queue, taskManagerLatch, rgName);
             runnablesToManage.add(readWorker);
         }
 

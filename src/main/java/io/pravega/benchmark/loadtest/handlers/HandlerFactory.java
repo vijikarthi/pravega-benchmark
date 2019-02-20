@@ -18,6 +18,8 @@ public class HandlerFactory {
             return new ReadWorkerHandler(appConfig, queue, latch);
         } else if (mode.equals(ArgumentsParser.RunMode.write.name())) {
             return new WriteWorkerHandler(appConfig, queue, latch);
+        } else if (mode.equals(ArgumentsParser.RunMode.readwrite.name())) {
+            return new ReadWriteWorkerHandler(appConfig, queue, latch);
         }
         String message = "Invalid task type [" + appConfig.getRunMode().name() + "] requested. Supported values are "+ supportedRunMode();
         throw new UnsupportedOperationException(message);

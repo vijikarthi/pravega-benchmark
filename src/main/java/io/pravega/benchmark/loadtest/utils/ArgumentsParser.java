@@ -97,6 +97,7 @@ public final class ArgumentsParser {
     public enum RunMode {
         create,
         write,
-        read
+        read,
+        readwrite
     }
 }

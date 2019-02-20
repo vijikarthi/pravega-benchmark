@@ -6,6 +6,5 @@ public interface ReportHandler {
     void open(AppConfig appConfig) throws Exception;
     void emit(Stats stats) throws Exception;
     void close();
-
 }
 

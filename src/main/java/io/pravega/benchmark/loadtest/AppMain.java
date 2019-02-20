@@ -9,6 +9,7 @@ import io.pravega.benchmark.loadtest.reports.Stats;
 import io.pravega.benchmark.loadtest.utils.AppConfig;
 import io.pravega.benchmark.loadtest.utils.ArgumentsParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -20,31 +21,34 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AppMain {
     public static void main(String ... args) {
+
+        ReportHandler reportHandler = null;
+        BlockingQueue<Stats> queue = new LinkedBlockingQueue<>();
+        CountDownLatch latch = new CountDownLatch(2);
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+
         log.info("Application Main loaded");
         try {
-            CountDownLatch latch = new CountDownLatch(2);
-
             AppConfig appConfig = ArgumentsParser.parseArgs(args);
-            BlockingQueue<Stats> queue = new LinkedBlockingQueue<>();
 
-            ReportHandler reportHandler = ReportFactory.getReportHandler(appConfig);
+            reportHandler = ReportFactory.getReportHandler(appConfig);
             reportHandler.open(appConfig);
-            Reporter reporter = new Reporter(queue, reportHandler, appConfig, latch);
 
-            ExecutorService executorService = Executors.newFixedThreadPool(1);
+            Reporter reporter = new Reporter(queue, reportHandler, appConfig, latch);
             executorService.submit(reporter);
 
             AbstractHandler task = HandlerFactory.getTaskHandler(appConfig, queue, latch);
             task.run();
 
             latch.await();
-            reportHandler.close();
-            executorService.shutdown();
-            executorService.awaitTermination(5, TimeUnit.SECONDS);
-
         } catch (Exception e) {
             log.error("Application failed", e);
         } finally {
+            if (reportHandler != null) { reportHandler.close(); }
+            try {
+                executorService.shutdown();
+                executorService.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {}
             log.info("Application Main unloaded");
         }
     }

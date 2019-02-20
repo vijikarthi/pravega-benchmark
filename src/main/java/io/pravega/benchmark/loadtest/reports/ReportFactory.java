@@ -15,6 +15,8 @@ public class ReportFactory {
 
         if (appConfig.getReport().getType().equals(AppConfig.ReportType.csv.name())) {
             return new CSVReportHandler();
+        } else if (appConfig.getReport().getType().equals(AppConfig.ReportType.pravega.name())) {
+            return new PravegaReportHandler();
         }
 
         String message = "Invalid report type [" + appConfig.getReport().getType() + "] passed. Supported values are "+ supportedReports();

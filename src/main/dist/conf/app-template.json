@@ -29,7 +29,6 @@
     "eventSize": 0,
     "noOfEvents": 0,
     "useRandomKey": true,
-    "useStaticData": true,
     "requestRatePerSec": 0,
     "txnWrites": false
   },
@@ -47,6 +46,12 @@
     }
   },
   "report": {
-    "type": "csv"
+    "type": "csv | pravega",
+    "comment": "if pravega is chosen, the provide the connection and stream information using params structure",
+    "params": [
+      {"key":  "controller", "value":  "tcp://localhost:9090"},
+      {"key":  "scope", "value":  ""},
+      {"key":  "stream", "value":  ""}
+    ]
   }
 }

@@ -3,6 +3,7 @@ package io.pravega.benchmark.loadtest.handlers;
 import com.google.common.base.Preconditions;
 import io.pravega.benchmark.loadtest.reports.Stats;
 import io.pravega.benchmark.loadtest.utils.AppConfig;
+import io.pravega.benchmark.loadtest.utils.ArgumentsParser;
 import io.pravega.client.ClientFactory;
 import io.pravega.client.admin.ReaderGroupManager;
 import io.pravega.client.stream.EventRead;
@@ -15,6 +16,7 @@ import io.pravega.client.stream.StreamCut;
 import io.pravega.client.stream.impl.JavaSerializer;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
@@ -22,24 +24,26 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.pravega.benchmark.loadtest.handlers.WriteWorker.MAX_PAD_LENGTH;
+
 @Slf4j
 public class ReadWorker extends AbstractWorker {
 
-    private int workerId;
     private AtomicInteger readResponse;
 
     private ClientFactory clientFactory = null;
     private EventStreamReader<String> reader = null;
+    private final String readerGroupName;
 
     private int eventSize;
     private int totalEvents;
     private URI controller;
 
     public ReadWorker(final int workerId, AtomicInteger readResponse, final AppConfig appConfig,
-                      final BlockingQueue<Stats> queue, final CountDownLatch latch) throws Exception {
-        super(appConfig, queue, latch);
-        this.workerId = workerId;
+                      final BlockingQueue<Stats> queue, final CountDownLatch latch, String readerGroupName) throws Exception {
+        super(workerId, appConfig, queue, latch);
         this.readResponse = readResponse;
+        this.readerGroupName = readerGroupName;
         initialize();
     }
 
@@ -87,19 +91,12 @@ public class ReadWorker extends AbstractWorker {
             }
         }
 
-        String rgName = null;
-        if (appConfig.getRead().getReaderGroup() != null) {
-            rgName = appConfig.getRead().getReaderGroup().getName();
-        }
-        if (rgName == null || rgName.length() == 0) {
-            rgName = UUID.randomUUID().toString().replace("-", "");
-        }
         ReaderGroupManager readerGroupManager = ReaderGroupManager.withScope(defaultScope, controller);
-        readerGroupManager.createReaderGroup(rgName, readerGroupConfigBuilder.build());
+        readerGroupManager.createReaderGroup(readerGroupName, readerGroupConfigBuilder.build());
 
         clientFactory = ClientFactory.withScope(defaultScope, controller);
         reader = clientFactory.createReader(String.valueOf(workerId),
-                rgName,
+                readerGroupName,
                 new JavaSerializer<>(),
                 ReaderConfig.builder().build());
     }
@@ -107,26 +104,28 @@ public class ReadWorker extends AbstractWorker {
     @Override
     public void run() {
         log.info("reader thread {} is running now", Thread.currentThread().getName());
+        int totalReads = 0;
         try {
             while (readResponse.get() < totalEvents) {
                 try {
-                    Stats stats = new Stats();
-                    stats.setStartTime(Instant.now());
-                    stats.setEventSize(eventSize);
-                    stats.setRunMode(appConfig.getRunMode());
+                    Stats stats = getStatsInfo(eventSize, ArgumentsParser.RunMode.read, Thread.currentThread().getName());
                     EventRead<String> event = reader.readNextEvent(1000);
-                    if (event.getEvent() != null) {
-                        readResponse.incrementAndGet();
+                    String data = event.getEvent();
+                    if (data != null) {
+                        totalReads = readResponse.incrementAndGet();
+                        String eventKey = event.getEvent().substring(0, MAX_PAD_LENGTH);
+                        stats.setEventKey(eventKey);
                         stats.setEndTime(Instant.now());
                         reportStats(stats);
+                        //log.info("read: {}, {}", totalReads, data);
                     }
                 } catch (ReinitializationRequiredException e) {
-                    log.warn("reader re-init required exception", e);
+                    //log.warn("reader re-init required exception", e);
                 }
             }
         } finally {
             close();
-            log.info("reader thread {} is exiting now. Total events read [{}]", Thread.currentThread().getName(), readResponse.get());
+            log.info("reader thread {} is exiting now. Total events read [{}]", Thread.currentThread().getName(), totalReads);
             latch.countDown();
         }
     }
