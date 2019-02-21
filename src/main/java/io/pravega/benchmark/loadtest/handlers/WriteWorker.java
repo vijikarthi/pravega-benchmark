@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class WriteWorker extends AbstractWorker {
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(1);
     private AtomicInteger ongoingRequest = new AtomicInteger();
 
     private ClientFactory clientFactory = null;
@@ -88,7 +87,7 @@ public class WriteWorker extends AbstractWorker {
                 Stats stats = getStatsInfo(eventSize, ArgumentsParser.RunMode.write, Thread.currentThread().getName());
                 stats.setEventKey(eventKey);
                 String data = getData(eventKey);
-                //log.info("writing: {}, {}", currentOffset, data);
+                log.info("thread: {} is writing at offset: {}", Thread.currentThread().getName(), currentOffset);
 
                 if (useRandomKey) {
                     future = writer.writeEvent(data);
@@ -106,10 +105,11 @@ public class WriteWorker extends AbstractWorker {
                                 reportStats(stats);
                             }
                             ongoingRequest.decrementAndGet();
-                        }, executorService
+                        }
                 );
                 currentOffset++;
             }
+            writer.flush();
             while (ongoingRequest.get() > 0) {
                 try {
                     Thread.sleep(100);
@@ -130,9 +130,6 @@ public class WriteWorker extends AbstractWorker {
             }
             if (clientFactory != null) {
                 clientFactory.close();
-            }
-            if (executorService != null) {
-                executorService.shutdown();
             }
         } catch (Exception e) {}
     }

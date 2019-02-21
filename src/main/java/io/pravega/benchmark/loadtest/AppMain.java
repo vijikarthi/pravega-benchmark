@@ -9,7 +9,6 @@ import io.pravega.benchmark.loadtest.reports.Stats;
 import io.pravega.benchmark.loadtest.utils.AppConfig;
 import io.pravega.benchmark.loadtest.utils.ArgumentsParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
