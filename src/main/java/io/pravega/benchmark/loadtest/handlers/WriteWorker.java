@@ -10,7 +10,6 @@ import io.pravega.client.stream.EventStreamWriter;
 import io.pravega.client.stream.EventWriterConfig;
 import io.pravega.client.stream.impl.JavaSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.net.URI;
 import java.time.Instant;
@@ -72,6 +71,7 @@ public class WriteWorker extends AbstractWorker {
     public void run() {
         log.info("writer thread {} is running now to generate {} records", Thread.currentThread().getName(), totalEventsToGenerate);
         int currentOffset = 1;
+
         try {
             while (currentOffset <= totalEventsToGenerate) {
 
@@ -133,8 +133,6 @@ public class WriteWorker extends AbstractWorker {
     }
 
     private String getData(String key) {
-        String randomVal = RandomStringUtils.randomAlphabetic(eventSize - MAX_PAD_LENGTH);
-        return String.join("", new String[]{key, randomVal});
-
+        return String.format("%s%0"+(eventSize-MAX_PAD_LENGTH)+"d", key, 0);
     }
 }
