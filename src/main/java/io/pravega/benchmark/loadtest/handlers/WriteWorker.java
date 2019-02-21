@@ -18,8 +18,6 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -87,7 +85,7 @@ public class WriteWorker extends AbstractWorker {
                 Stats stats = getStatsInfo(eventSize, ArgumentsParser.RunMode.write, Thread.currentThread().getName());
                 stats.setEventKey(eventKey);
                 String data = getData(eventKey);
-                log.info("thread: {} is writing at offset: {}", Thread.currentThread().getName(), currentOffset);
+                //log.info("thread: {} is writing at offset: {}, data length: {}", Thread.currentThread().getName(), currentOffset, data.getBytes().length);
 
                 if (useRandomKey) {
                     future = writer.writeEvent(data);
