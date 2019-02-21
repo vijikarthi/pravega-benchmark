@@ -10,6 +10,7 @@ import io.pravega.client.stream.EventStreamWriter;
 import io.pravega.client.stream.EventWriterConfig;
 import io.pravega.client.stream.impl.JavaSerializer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.net.URI;
 import java.time.Instant;
@@ -37,6 +38,8 @@ public class WriteWorker extends AbstractWorker {
     private URI controller;
     private String routingKey;
 
+    private String data;
+
     public static int MAX_PAD_LENGTH = 36;
 
     public WriteWorker(final int workerId, final RateLimiter rateLimiter, final AppConfig appConfig,
@@ -63,6 +66,8 @@ public class WriteWorker extends AbstractWorker {
         eventSize = appConfig.getWrite().getEventSize();
         useRandomKey = appConfig.getWrite().isUseRandomKey();
 
+        data = RandomStringUtils.randomAlphanumeric(eventSize - MAX_PAD_LENGTH);
+
         clientFactory = ClientFactory.withScope(scope,controller);
         writer = clientFactory.createEventWriter(stream, new JavaSerializer<>(), EventWriterConfig.builder().build());
     }
@@ -85,7 +90,7 @@ public class WriteWorker extends AbstractWorker {
                 Stats stats = getStatsInfo(eventSize, ArgumentsParser.RunMode.write, Thread.currentThread().getName());
                 stats.setEventKey(eventKey);
                 String data = getData(eventKey);
-                //log.info("thread: {} is writing at offset: {}, data length: {}", Thread.currentThread().getName(), currentOffset, data.getBytes().length);
+                //log.info("thread: {} is writing at offset: {}, data length: {}, Key: {}", Thread.currentThread().getName(), currentOffset, data.getBytes().length, eventKey);
 
                 if (useRandomKey) {
                     future = writer.writeEvent(data);
@@ -133,6 +138,7 @@ public class WriteWorker extends AbstractWorker {
     }
 
     private String getData(String key) {
-        return String.format("%s%0"+(eventSize-MAX_PAD_LENGTH)+"d", key, 0);
+        //return String.format("%s%0"+(eventSize-MAX_PAD_LENGTH)+"d", key, 0);
+        return key + data;
     }
 }

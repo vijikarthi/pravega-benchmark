@@ -3,7 +3,6 @@ package io.pravega.benchmark.loadtest.handlers;
 import com.google.common.util.concurrent.RateLimiter;
 import io.pravega.benchmark.loadtest.reports.Stats;
 import io.pravega.benchmark.loadtest.utils.AppConfig;
-import io.pravega.client.admin.ReaderGroupManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
