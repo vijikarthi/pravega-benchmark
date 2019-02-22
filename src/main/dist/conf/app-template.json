@@ -1,6 +1,6 @@
 {
   "appName": "perfTest",
-  "fileName": "changeme.csv",
+  "fileName": "changeme",
   "threadPool": 80,
   "connection": {
     "controller": "tcp://localhost:9090",
