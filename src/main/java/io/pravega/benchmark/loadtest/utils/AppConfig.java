@@ -17,6 +17,7 @@ import static io.pravega.benchmark.loadtest.utils.ArgumentsParser.RunMode;
 public final class AppConfig {
 
     private String appName;
+    private String fileName;
     private int threadPool;
     private ConnectionConfig connection;
     private CreateConfig create;

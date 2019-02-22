@@ -18,7 +18,11 @@ public class CSVReportHandler implements ReportHandler {
 
     @Override
     public void open(AppConfig appConfig) throws Exception {
-        fileName = appConfig.getRunMode().name() + "-results-" + System.currentTimeMillis() + ".csv";
+        if (appConfig.getFileName() != null && appConfig.getFileName().length() > 0) {
+            fileName = appConfig.getRunMode().name() + "-results-" + appConfig.getFileName() + ".csv";
+        } else {
+            fileName = appConfig.getRunMode().name() + "-results-" + System.currentTimeMillis() + ".csv";
+        }
         FileWriter out = new FileWriter(fileName);
         printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(Stats.headers));
         log.info("opened csv file [{}] for writing", fileName);
