@@ -13,15 +13,19 @@ import java.time.Instant;
 @Data
 @ToString
 public class Stats implements Serializable {
-    private Instant startTime;
-    private Instant endTime;
-    private int eventSize;
-    private RunMode runMode;
+
+
     private boolean stop;
 
+    private RunMode runMode;
     private String appId;
     private String threadId;
     private String eventKey;
+    private int eventSize;
+    private Instant eventTime;
+    private Instant startTime;
+    private Instant endTime;
+    private long latency;
 
     private static SimpleDateFormat formatter = new SimpleDateFormat("MM-dd-yyyy hh-mm-ss SSSz");
 
@@ -44,16 +48,18 @@ public class Stats implements Serializable {
     }
 
     public String[] data() {
+        this.eventTime = Instant.now();
+        this.latency = latency();
         return new String[] {
                 runMode.name(),
                 appId,
                 threadId,
                 eventKey,
                 Integer.toString(eventSize),
-                Instant.now().toString(),
+                eventTime.toString(),
                 startTime.toString(),
                 endTime.toString(),
-                Long.toString(latency())
+                Long.toString(latency)
         };
     }
 }

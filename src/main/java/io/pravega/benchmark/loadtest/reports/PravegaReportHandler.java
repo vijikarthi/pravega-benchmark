@@ -8,13 +8,13 @@ import io.pravega.client.stream.impl.JavaSerializer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
+import java.time.Instant;
 
 @Slf4j
 public class PravegaReportHandler implements ReportHandler {
 
     private ClientFactory clientFactory = null;
     private EventStreamWriter<Stats> writer = null;
-    private String routingKey;
 
     @Override
     public void open(AppConfig appConfig) {
@@ -26,12 +26,13 @@ public class PravegaReportHandler implements ReportHandler {
 
         clientFactory = ClientFactory.withScope(scope,controllerUri);
         writer = clientFactory.createEventWriter(stream, new JavaSerializer<>(), EventWriterConfig.builder().build());
-        routingKey = String.valueOf(System.currentTimeMillis());
     }
 
     @Override
     public void emit(Stats stats) {
-        writer.writeEvent(routingKey, stats);
+        stats.setEventTime(Instant.now());
+        stats.setLatency(stats.latency());
+        writer.writeEvent(stats);
     }
 
     @Override

@@ -20,25 +20,27 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AppMain {
     public static void main(String ... args) {
-
         ReportHandler reportHandler = null;
         BlockingQueue<Stats> queue = new LinkedBlockingQueue<>();
-        CountDownLatch latch = new CountDownLatch(2);
+        CountDownLatch latch = null;
         ExecutorService executorService = Executors.newFixedThreadPool(1);
-
         log.info("Application Main loaded");
         try {
             AppConfig appConfig = ArgumentsParser.parseArgs(args);
+            AbstractHandler task = null;
+            if (appConfig.getRunMode().equals(ArgumentsParser.RunMode.create)) {
+                latch = new CountDownLatch(1);
+                task = HandlerFactory.getTaskHandler(appConfig, queue, latch);
+            } else {
+                latch = new CountDownLatch(2);
+                reportHandler = ReportFactory.getReportHandler(appConfig);
+                reportHandler.open(appConfig);
 
-            reportHandler = ReportFactory.getReportHandler(appConfig);
-            reportHandler.open(appConfig);
-
-            Reporter reporter = new Reporter(queue, reportHandler, appConfig, latch);
-            executorService.submit(reporter);
-
-            AbstractHandler task = HandlerFactory.getTaskHandler(appConfig, queue, latch);
+                Reporter reporter = new Reporter(queue, reportHandler, appConfig, latch);
+                executorService.submit(reporter);
+                task = HandlerFactory.getTaskHandler(appConfig, queue, latch);
+            }
             task.run();
-
             latch.await();
         } catch (Exception e) {
             log.error("Application failed", e);
